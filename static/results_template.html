@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8" />
+    <title>BuPol test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p>
+    Results 1. Exercise
+</p>
+<table class="comicGreen">
+    <thead>
+    <tr>
+        <th>First Word</th>
+        <th>Second Word</th>
+</tr>
+    </thead>
+    <tbody>
+    {{ range .}}
+    <tr>
+        <td>{{ .Person.Username }}</td>
+        <td>{{ .RandomWord }}</td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+<p>
+   Results 2. Exercise
+</p>
+<table class="comicGreen">
+    <thead>
+    <tr>
+        <th>Location</th>
+        <th>Phone numbers</th>
+    </tr>
+    </thead>
+    <tbody>
+        {{ range .}}
+            <tr>
+                <td>{{ .Person.Location }}</td>
+                <td>{{ .Person.Phone.Mobile }}</td>
+            </tr>
+        {{ end }}
+    </tbody>
+</table>
+<div>
+    </p>
+    <form method="POST" action="/">
+        <input type="submit" value="Start again" />
+    </form>
+    </p>
+</div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>BuPol test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<p>
+   2. Exercise
+</p>
+<table class="comicGreen">
+    <thead>
+    <tr>
+        <th>Location</th>
+        <th>Phone numbers</th>
+    </tr>
+    </thead>
+    <tbody>
+        {{ range .}}
+            <tr>
+                <td>{{ .Location }}</td>
+                <td>{{ .Phone.Mobile }}</td>
+            </tr>
+        {{ end }}
+    </tbody>
+</table>
+<div>
+    </p>
+    <form method="POST" action="/phoneNumbers">
+        <!--<label>Name</label><input name="name" type="text" value="" />
+        <label>Address</label><input name="address" type="text" value="" />-->
+        <input type="submit" value="New phone numbers" />
+    </form>
+    </p>
+    <form method="POST" action="/results">
+        <input type="submit" value="Check results" />
+    </form>
+</div>
+</body>
+</html>
