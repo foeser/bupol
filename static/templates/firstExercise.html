@@ -1,0 +1,24 @@
+{{ define "firstExercise" }}
+<div class="text-center p-5">
+    <h1>1. Exercise</h1>
+    </p class="lead">
+    <table class="table table-striped table-dark">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">First Word</th>
+            <th scope="col">Second Word</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ range $i, $e := .}}
+        <tr>
+            <th scope="row">{{ $i }}</th>
+            <td>{{ .Person.Username }}</td>
+            <td>{{ .RandomWord }}</td>
+        </tr>
+        {{ end }}
+        </tbody>
+    </table>
+</div>
+{{ end }}

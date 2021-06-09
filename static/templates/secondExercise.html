@@ -1,0 +1,24 @@
+{{ define "secondExercise" }}
+<div class="text-center p-5">
+    <h1>2. Exercise</h1>
+    </p class="lead">
+    <table class="table table-striped table-dark">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Location</th>
+            <th scope="col">Phone numbers</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{ range $i, $e := .}}
+        <tr>
+            <th scope="row">{{ $i }}</th>
+            <td>{{ .Person.Location }}</td>
+            <td>{{ .Person.Phone.Mobile }}</td>
+        </tr>
+        {{ end }}
+        </tbody>
+    </table>
+</div>
+{{ end }}

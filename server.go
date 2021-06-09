@@ -15,22 +15,24 @@ import (
 )
 
 type Phone struct {
-	Land string `json:"land"`
+	Land   string `json:"land"`
 	Mobile string `json:"mobile"`
 }
 
 type Person struct {
 	Username string `json:"username"`
-	Phone Phone `json:"phone"`
+	Phone    Phone  `json:"phone"`
 	Location string
 }
 
 type Entry struct {
-	Person Person
+	Person     Person
 	RandomWord string
 }
 
 var currentEntries []Entry
+
+var templates = template.Must(template.ParseGlob("static/templates/*"))
 
 func getGermanWords() []string {
 	resp, err := http.Get("https://www.palabrasaleatorias.com/zufallige-worter.php?fs=10&fs2=0&Submit=Neues+Wort")
@@ -51,7 +53,7 @@ func getGermanWords() []string {
 	for scanner.Scan() {
 		line := scanner.Text()
 		//fmt.Println(line)
-		if strings.Contains(line,"<br /><div style=\"font-size:3em; color:#6200C5;\">") {
+		if strings.Contains(line, "<br /><div style=\"font-size:3em; color:#6200C5;\">") {
 			// get next line and remove div to get word
 			scanner.Scan()
 			//fmt.Println(scanner.Text())
@@ -113,8 +115,9 @@ func readLocation(fileName string) []string {
 
 func main() {
 
-	fileServer := http.FileServer(http.Dir("./static")) // New code
-	http.Handle("/", fileServer)
+	//fileServer := http.FileServer(http.Dir("./static")) // New code
+	//http.Handle("/", fileServer)
+	//http.HandleFunc("/", wordsHandler)
 	http.HandleFunc("/words", wordsHandler)
 	http.HandleFunc("/phoneNumbers", phoneNumbersHandler)
 	http.HandleFunc("/results", resultsHandler)
@@ -126,13 +129,9 @@ func main() {
 }
 
 func resultsHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("./static/results_template.html")
+	err := templates.ExecuteTemplate(w, "results", currentEntries)
 	if err != nil {
-		panic(err)
-	}
-
-	err = t.Execute(w, currentEntries)
-	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
 }
@@ -140,19 +139,15 @@ func phoneNumbersHandler(w http.ResponseWriter, r *http.Request) {
 	// reset current entries and get new data
 	persons := getRandomPersonData(10)
 
-	t, err := template.ParseFiles("./static/phoneNumbers_template.html")
-	if err != nil {
-		panic(err)
-	}
-
 	// merge results from currentPersons (second exercise: location + phone) into currentEntries
 	for i := range currentEntries {
 		currentEntries[i].Person.Location = persons[i].Location
 		currentEntries[i].Person.Phone.Mobile = persons[i].Phone.Mobile
 	}
 
-	err = t.Execute(w, persons)
+	err := templates.ExecuteTemplate(w, "phonenumbers", currentEntries)
 	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
 }
@@ -175,13 +170,9 @@ func wordsHandler(w http.ResponseWriter, r *http.Request) {
 		currentEntries = append(currentEntries, Entry{Person: *persons[i], RandomWord: s})
 	}
 
-	t, err := template.ParseFiles("./static/words_template.html")
+	err := templates.ExecuteTemplate(w, "words", currentEntries)
 	if err != nil {
-		panic(err)
-	}
-
-	err = t.Execute(w, currentEntries)
-	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
 }
