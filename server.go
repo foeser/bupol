@@ -94,6 +94,8 @@ func getRandomPersonData(count int) []*Person {
 
 	for _, person := range persons {
 		person.Location = locations[rand.Intn(len(locations))]
+		// reduce the phone number to the last three digits
+		person.Phone.Mobile = string(person.Phone.Mobile[len(person.Phone.Mobile)-3:])
 	}
 
 	return persons
