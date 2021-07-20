@@ -1,0 +1,87 @@
+{{ define "settings" }}
+{{ template "header" }}
+{{ template "nav" }}
+<body>
+<main class="jumbotron">
+    <div class="text-center">
+        <div class="container-fluid">
+            <div class="row justify-content-md-center">
+                <div class="col-lg-3 center-block">
+                    <h1 class="mb-4 mt-4">Settings</h1>
+                    <form name="forms" id="forms">
+                        <div class="form-group text-center" >
+                            <label>Row count
+                            <input type="text" class="form-control" name="rowCount" id="rowCount"/>
+                            </label>
+                        </div>
+                        <div class="form-group  text-center">
+                            <label>Timer (in seconds)
+                            <input type="text" class="form-control" name="timeInSeconds" id="timer"/>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save and start from 1. Exercise</button>
+                    </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+<script>
+    window.vDir = "{{$.VDir}}"
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url:vDir + "/appSettings/get",
+            contentType: "text/plain",
+            dataType: "json",
+            success: function (data) {
+                console.log(data)
+                document.getElementById('rowCount').setAttribute('value',data.rowCount);
+                document.getElementById('timer').setAttribute('value',data.timeInSeconds);
+            },
+            error: function (data, err) {
+                console.error(data);
+            }
+        })
+    });
+
+    // convert the form to JSON
+    const getFormJSON = (form) => {
+        const data = new FormData(form);
+        return Array.from(data.keys()).reduce((result, key) => {
+            result[key] = parseInt(data.get(key), 10);
+            return result;
+        }, {});
+    };
+
+    const handler = (event) => {
+        event.preventDefault();
+        const valid = form.reportValidity();
+        if (valid) {
+            const result = getFormJSON(form);
+            console.log(result)
+            $.ajax({
+                type: "POST",
+                url: vDir + "/appSettings/set",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(result),
+                success: function (data) {
+                    //$.showSnackBar(data);
+                    window.location.assign(vDir +"/exercises/first/");
+                },
+                error: function (data, err) {
+                    //$.showSnackBar(data);
+                    console.error(data);
+                }
+            });
+        }
+    }
+    const form = document.querySelector('form#forms');
+    form.addEventListener('submit', handler);
+</script>
+</body>
+{{ template "footer" }}
+{{ end }}

@@ -1,4 +1,4 @@
-{{ define "firstExercise" }}
+{{ define "resultsFirstExercise" }}
 {{ template "header" }}
 {{ template "nav" }}
 <body>
@@ -7,10 +7,10 @@
         <div class="container-fluid">
             <div class="row justify-content-md-center">
                 <div class="col-sm border">
-                    <h1 class="mb-4 mt-4"><span class="fas fa-graduation-cap"></span>First exercise</h1>
-                    <div id="countdown"><div class="values">
-                        Countdown comes here
-                    </div></div>
+                    <h1 class="mb-4 mt-4"><span class="fas fa-graduation-cap"></span>Results</h1>
+                    <div id="snackbar" class="alert hideMe">
+                        Message comes here
+                    </div>
                     <div class="container-fluid" id="GridPersons">
                     </div>
                 </div>
@@ -18,26 +18,22 @@
 
         </div>
     </div>
+
     <script>
         window.vDir = "{{$.VDir}}"
         window.Exercise = "{{$.Exercise}}"
-        window.timerTime = "{{$.TimerTime}}"
         window.GridfieldName1  = "{{$.GridfieldName1}}"
         window.GridfieldTitle1 = "{{$.GridfieldTitle1}}"
         window.GridfieldName2  = "{{$.GridfieldName2}}"
         window.GridfieldTitle2 = "{{$.GridfieldTitle2}}"
     </script>
-
-    <script src="static/exercise.js"></script>
+    <script src="static/results.js"></script>
 
     <div class="container text-center p-5">
         <div class="row">
             <div class="col-sm">
-                    <button type="submit" class="btn btn-primary btn-lg" onclick="ReloadData();">Re-Generate</button>
-            </div>
-            <div class="col-sm">
-                <form method="GET" action="{{$.VDir}}/exercises/second/">
-                    <button type="submit" class="btn btn-primary btn-lg">Next exercise</button>
+                <form method="GET" action="{{$.VDir}}/results/second/">
+                    <button type="submit" class="btn btn-primary btn-lg">Results 2. Exercise</button>
                 </form>
             </div>
         </div>
