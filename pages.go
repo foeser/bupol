@@ -12,6 +12,7 @@ var templates = template.Must(template.ParseGlob("static/templates/*"))
 func renderResultsSecondExercise(w http.ResponseWriter, r *http.Request) {
 	pageData := PageData{
 		VDir:            appConfig.VDir,
+		RowCount:        appSettings.RowCount,
 		Exercise:        "second",
 		GridfieldName1:  "Location",
 		GridfieldTitle1: "Location",
@@ -31,6 +32,7 @@ func redirectToResultsSecondExercise(w http.ResponseWriter, r *http.Request) {
 func renderResultsFirstExercise(w http.ResponseWriter, r *http.Request) {
 	pageData := PageData{
 		VDir:            appConfig.VDir,
+		RowCount:        appSettings.RowCount,
 		Exercise:        "first",
 		GridfieldName1:  "username",
 		GridfieldTitle1: "First Word",
@@ -89,12 +91,7 @@ func redirectToFirstExcerise(w http.ResponseWriter, r *http.Request) {
 
 func renderSettings(w http.ResponseWriter, r *http.Request) {
 	pageData := PageData{
-		VDir:            appConfig.VDir,
-		Exercise:        "first",
-		GridfieldName1:  "username",
-		GridfieldTitle1: "First Word",
-		GridfieldName2:  "SecondWord",
-		GridfieldTitle2: "Second Word",
+		VDir: appConfig.VDir,
 	}
 	if err := templates.ExecuteTemplate(w, "settings", pageData); err != nil {
 		log.Fatalf("Error rendering template: %s", err)

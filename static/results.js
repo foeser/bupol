@@ -24,7 +24,7 @@ $(document).ready(function () {
 function getAppData() {
     // just get first element
     $.getJSON(vDir + "/data/getResults/" + Exercise + "/0", function (data) {
-        console.log(data)
+        //console.log(data)
         window.appData = [data];
         renderPersonsData();
     }).fail(function (data) {
@@ -34,23 +34,6 @@ function getAppData() {
 }
 
 function renderPersonsData() {
-
-    var BSControl = function (config) {
-        jsGrid.ControlField.call(this, config);
-    };
-
-    BSControl.prototype = new jsGrid.ControlField({
-        _createUpdateButton: function () {
-            var grid = this._grid;
-            return $("<button class=\"btn btn-sm btn-light m-0 ml-1 p-1\" title=\"" + this.updateButtonTooltip + "\">").append("<i class=\"fas fa-check bs-grid-button text-success m-0 p-0\">").click(function (e) {
-                console.error("onUpdate")
-                grid.updateItem();
-                e.stopPropagation();
-            });
-        }
-    });
-
-    jsGrid.fields.bscontrol = BSControl;
 
     var gridFields = [];
     var gridWidth = "1700px";
@@ -64,27 +47,86 @@ function renderPersonsData() {
         // show empty input field while editing and allow enter key for validation
         editTemplate: function (value, item) {
             var $result = jsGrid.fields.text.prototype.editTemplate.call(this);
+            // enter updates row (get to next row in case of success)
             $result.on("keydown", function(e) {
                 if(e.which === 13) {
                     $("#GridPersons").jsGrid("updateItem");
                     return false;
                 }
             });
+            // set focus to textbox when clicked in row
+            setTimeout(function() {
+                $result.focus();
+            });
             return $result;
         },
         align: "center"
     });
     gridFields.push({ name: "editable", title: "Editable", type: "text", width: 150, editing: false,visible: false });
+    gridFields.push({ name: "skipped", title: "Editable", type: "text", width: 150, editing: false,visible: false });
     gridFields.push({
-        name: "command", type: "bscontrol", width: 125, modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
+        name: "command", type: "control", width: 125, modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
         itemTemplate: function (value, item) {
-            if(item.editable === "false") {
+            // don't show button/control when row is solved (disabled for editing) already
+            if(item != undefined && item.editable === "false") {
                 return ""
             }
+            return this._createGridButton("jsgrid-edit-button", "Click to Edit this row", function(grid) {
+            });
+        },
+        editTemplate: function (value, item) {
+            // set skipped to retry to allow updating (checking for result)
+            item.skipped = "retry"
+            var $result = this._createGridButton("jsgrid-update-button", "Click to save this row", function(grid) {
+                // ToDo: skip setting itemvalue, update value instead via updateItem call
+                $("#GridPersons").jsGrid("updateItem");
+            });
+            return $result.add(this._createGridButton("jsgrid-cancel-button", "Click to cancel this row", function(grid) {
+                $("#GridPersons").jsGrid("cancelEdit");
+            }))
+        },
+
+    });
+    gridFields.push({
+        name: "skipbutton", type: "control", width: 125, modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
+        itemTemplate: function (value, item) {
+            // don't show button/control when row is solved (disabled for editing) already or when its the last row or skipped
+            var items = $("#GridPersons").jsGrid("option", "data");
+            var arrayLength = items.length;
+            if(item.editable === "false" || arrayLength == RowCount || item.skipped === "skipped") {
+                return ""
+            }
+
             return $("<button>").addClass("btn btn-primary btn-sm")
-                .attr({ type: "button", title: "Click in row to start!" })
-                .html("Click in row to start!")
+                .attr({ type: "button", title: "Skip" })
+                .html("<i class=\"fas fa-forward\"></i>Skip")
+                .on("click", function () {
+                    $("#GridPersons").jsGrid("updateItem", item, { GridfieldName1: item[GridfieldName1], GridfieldName2: item[GridfieldName2], editable: item.editable, skipped: "skipped" }).done(function () {
+                        $.ajax({
+                            type: "GET",
+                            url:vDir + "/data/getResults/" + Exercise + "/" + arrayLength,
+                            contentType: "text/plain",
+                            dataType: "json",
+                            success: function (data) {
+                                console.log(data)
+                                $("#GridPersons").jsGrid("insertItem", data).done(function() {
+                                    console.log("insertion completed");
+                                });
+
+                            },
+                            error: function (data, err) {
+                                console.log(data)
+                                console.error(data.responseJSON.message);
+                            }
+                        })
+                   })
+                });
+        },
+        editTemplate: function (value, item) { return "" },
+        insertTemplate: function () {
+            return ""
         }
+
     });
 
     $("#GridPersons").jsGrid({
@@ -97,9 +139,13 @@ function renderPersonsData() {
         align: "center",
         data: appData,
         fields: gridFields,
+
         controller: {
             // check if entered values are correct
             updateItem: function(item) {
+                if(item.editable === "false" || item.skipped === "skipped") {
+                    return
+                }
                 return $.ajax({
                     type: "GET",
                     url: vDir + "/query/" + Exercise + "/" + item[GridfieldName1] + '/' + item[GridfieldName2],
@@ -108,8 +154,7 @@ function renderPersonsData() {
                     success: function (data) {
                         console.log("Match")
                         data.message = "match"
-                        //$.showSnackBar(data);
-                        return data
+                        $.showSnackBar(data);
 
                     },
                     error: function (data, err) {
@@ -121,51 +166,65 @@ function renderPersonsData() {
                 })
             }
         },
+
         // rows/items which are solved shouldn't be editable anymore
         onItemEditing: function(args) {
             if(args.item.editable === "false") {
                 args.cancel = true;
+                return
             }
         },
+
         // get next item/row
         onItemUpdated: function(args) {
+            if(args.item.skipped === "skipped" || args.item.skipped === "retry") {
+                return
+            }
+            // check if everything is solved or if we need to add more rows
+            var items = $("#GridPersons").jsGrid("option", "data");
+            var arrayLength = items.length;
+
+            if(arrayLength == RowCount) {
+                var solvedEverything = true
+                for (var i = 0; i < arrayLength; i++) {
+                    console.log(items[i])
+                    if (items[i].editable === "true") {
+                        solvedEverything = false
+                    }
+                }
+                if (solvedEverything) {
+                    $("#GridPersons").jsGrid("option", "editing", false)
+                    var data = {message: "YOU SOLVED EVERYTHING! :)"}
+                    $.showSnackBar(data);
+
+                }
+                return
+            }
+
+            // if the current updatedItem is not the last one then we skip adding more (since this is an item which was
+            // skipped previously and there was already an insert afterwards)
+            if(args.itemIndex != arrayLength - 1) {
+                return
+            }
+
             $.ajax({
                 type: "GET",
-                url:vDir + "/data/getResults/" + Exercise + "/" + (parseInt(args.itemIndex) + 1),
+                url: vDir + "/data/getResults/" + Exercise + "/" + (parseInt(args.itemIndex) + 1),
                 contentType: "text/plain",
                 dataType: "json",
                 success: function (data) {
                     //$.showSnackBar(data);
                     console.log(data)
-                    $("#GridPersons").jsGrid("insertItem", data).done(function() {
+                    $("#GridPersons").jsGrid("insertItem", data).done(function () {
                         console.log("insertion completed");
                     });
+
                 },
                 error: function (data, err) {
-                    //var json = $.parseJSON(data.responseJSON);
-                    //$.showSnackBar(json);
                     console.log(data)
-                    //console.error("Message: " + json.message);
-                    if(data.responseJSON.message === "Index out of range.") {
-                        $("#GridPersons").jsGrid("option", "editing", false)
-                        data.message = "YOU SOLVED EVERYTHING! :)"
-                        $.showSnackBar(data);
-                    }
                     console.error(data.responseJSON.message);
                 }
             })
-            /*console.log("row " + args.itemIndex)
-            $.getJSON(vDir + "/data/getResults/" + Exercise + "/" + (parseInt(args.itemIndex) + 1), function (data) {
-                console.log(data)
-                $("#GridPersons").jsGrid("insertItem", data).done(function() {
-                    console.log("insertion completed");
-                });
-            }).fail(function (data) {
-                $.showSnackBar(data);
-                console.error("Message: " + data.message);
-                $("#GridPersons").jsGrid("option", "editing", false)
-                console.error(data);
-            });*/
         },
     });
 }

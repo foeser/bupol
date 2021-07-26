@@ -46,6 +46,7 @@ type AppData struct {
 type PageData struct {
 	VDir            string
 	TimerTime       int
+	RowCount        int
 	Exercise        string
 	GridfieldName1  string
 	GridfieldTitle1 string
