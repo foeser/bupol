@@ -1,33 +1,19 @@
+/* margin between icon and text */
 .fas {
     margin-right: 10px;
 }
 
-.jsgrid-button {
-    min-width: unset !important;
-}
-
-.grid-button {
-    cursor: pointer;
-    font-size: 18px;
-    margin-right: 12px !important;
-}
-
-.bs-grid-button {
-    font-size: 18px;
-    min-width: 22px;
-}
-
+/* used for display/hidding the snackbar */
 .hideMe {
     display: none;
 }
 
-/*.jsgrid-edit-row>.jsgrid-cell {
-    background-color: #5cb85c;
-}*/
-
-tr.highlight td.jsgrid-cell {
-    background-color: green;
+/* used to highlight solved rows */
+tr.highlight-green td.jsgrid-cell {
+    background-color: lightgreen;
 }
-tr.error td.jsgrid-cell {
-    background-color: red;
+
+/* very important, wrap text in cells if they exceed with */
+.jsgrid-cell {
+    word-wrap: break-word;
 }

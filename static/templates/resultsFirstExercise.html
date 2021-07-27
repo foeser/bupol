@@ -2,31 +2,25 @@
 {{ template "header" }}
 {{ template "nav" }}
 <body>
+<!--<div id="GridExercise"></div>-->
 <main class="jumbotron">
     <div class="text-center">
-        <div class="container-fluid">
-            <div class="row justify-content-md-center">
-                <div class="col-sm border">
-                    <h1 class="mb-4 mt-4"><span class="fas fa-graduation-cap"></span>Results</h1>
-                    <div id="snackbar" class="alert hideMe">
-                        Message comes here
-                    </div>
-                    <div class="container-fluid" id="GridPersons">
-                    </div>
+        <div class="row justify-content-md-center">
+            <div class="col-sm border">
+                <h1 class="mb-4 mt-4"><span class="fas fa-graduation-cap"></span>First exercise</h1>
+                <div class="container-fluid" id="GridExercise">
                 </div>
             </div>
-
         </div>
     </div>
-
     <script>
-        window.vDir = "{{$.VDir}}"
-        window.RowCount = "{{$.RowCount}}"
-        window.Exercise = "{{$.Exercise}}"
-        window.GridfieldName1  = "{{$.GridfieldName1}}"
-        window.GridfieldTitle1 = "{{$.GridfieldTitle1}}"
-        window.GridfieldName2  = "{{$.GridfieldName2}}"
-        window.GridfieldTitle2 = "{{$.GridfieldTitle2}}"
+        vDir = "{{$.VDir}}"
+        RowCount = "{{$.RowCount}}"
+        Exercise = "{{$.Exercise}}"
+        GridfieldName1  = "{{$.GridfieldName1}}"
+        GridfieldTitle1 = "{{$.GridfieldTitle1}}"
+        GridfieldName2  = "{{$.GridfieldName2}}"
+        GridfieldTitle2 = "{{$.GridfieldTitle2}}"
     </script>
     <script src="static/results.js"></script>
 

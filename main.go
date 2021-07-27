@@ -86,8 +86,6 @@ func setupWebServer() {
 	subrouter = router.PathPrefix(appConfig.VDir + "/appSettings").Subrouter()
 	subrouter.HandleFunc("", renderSettings).Methods("GET")
 	subrouter.HandleFunc("/get", getAppSettings).Methods("GET")
-	//subrouter.HandleFunc("/", redirectToRenderSettings).Methods("GET")
-	//subrouter.HandleFunc("/get", getSettings).Methods("GET")
 	subrouter.HandleFunc("/set", saveAppSettings).Methods("POST")
 
 	// exercise and results pages query this

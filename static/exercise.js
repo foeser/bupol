@@ -14,41 +14,30 @@ function startTimer() {
     });
 
     timer.addEventListener('targetAchieved', function (e) {
-        //$('#countdown .values').html('KABOOM!!');
-        //$("#GridPersons").children().remove();
+        // remove grid once countdown exceed
         $(".jsgrid-grid-body").children().remove();
     });
 }
 
 function getAppData() {
     $.getJSON(vDir + "/data/get/" + Exercise, function (data) {
-        //console.log(data)
         window.appData = data;
         renderPersonsData();
     }).fail(function (data) {
-        alert("Error: Problem with getting approver information.");
+        alert("Error: Problem with getting information from backend.");
     });
 }
 
 function renderPersonsData() {
 
     var gridFields = [];
-    var gridWidth = "700px";
 
-    gridFields.push({ name: GridfieldName1, title: GridfieldTitle1, type: "text", width: 150, validate: { validator: "required", message: "Device name is a required field." },
-        editing: false,
-        align: "center"
+    gridFields.push({ name: GridfieldName1, title: GridfieldTitle1, type: "text", editing: false, align: "center" });
+    gridFields.push({ name: GridfieldName2, title: GridfieldTitle2, type: "text", editing: false, align: "center" });
 
-    });
-    gridFields.push({ name: GridfieldName2, title: GridfieldTitle2, type: "text", width: 150, validate: { validator: "required", message: "Device name is a required field." },
-        editing: false,
-        align: "center"
-    });
-
-    $("#GridPersons").jsGrid({
+    $("#GridExercise").jsGrid({
         height: "auto",
-        width:  gridWidth,
-        updateOnResize: true,
+        width: "50%",
         editing: false,
         inserting: false,
         sorting: false,

@@ -28,7 +28,7 @@ function getAppData() {
         window.appData = [data];
         renderPersonsData();
     }).fail(function (data) {
-        alert("Error: Problem with getting approver information.");
+        alert("Error: Problem with getting information from backend.");
     });
 
 }
@@ -36,21 +36,28 @@ function getAppData() {
 function renderPersonsData() {
 
     var gridFields = [];
-    var gridWidth = "1700px";
 
-    gridFields.push({ name: GridfieldName1, title: GridfieldTitle1, type: "text", width: 150, validate: { validator: "required", message: "Device name is a required field." },
-        editing: false,
-        align: "center"
+    // ToDo: consider using custom validators for checking actual results: http://js-grid.com/docs/#custom-validators
+    /*jsGrid.validators.foobar = {
+        message: "Please enter a valid time, between 00:00 and 23:59",
+        validator: function(value, item) {
+            console.log("Value " + value + " for item" + item)
+            return false;
+        }
+    }*/
 
-    });
-    gridFields.push({ name: GridfieldName2, title: GridfieldTitle2, type: "text", width: 150, validate: { validator: "required", message: "Device name is a required field." },
+    gridFields.push({ name: GridfieldName1, title: GridfieldTitle1, type: "text", editing: false, align: "center" });
+    gridFields.push({ name: GridfieldName2, title: GridfieldTitle2, type: "text",validate: { validator: "required", message: "Empty input is not allowed" },
+        /*validate: {
+            validator: "foobar",
+        },*/
         // show empty input field while editing and allow enter key for validation
         editTemplate: function (value, item) {
             var $result = jsGrid.fields.text.prototype.editTemplate.call(this);
             // enter updates row (get to next row in case of success)
             $result.on("keydown", function(e) {
                 if(e.which === 13) {
-                    $("#GridPersons").jsGrid("updateItem");
+                    $("#GridExercise").jsGrid("updateItem");
                     return false;
                 }
             });
@@ -62,10 +69,10 @@ function renderPersonsData() {
         },
         align: "center"
     });
-    gridFields.push({ name: "editable", title: "Editable", type: "text", width: 150, editing: false,visible: false });
-    gridFields.push({ name: "skipped", title: "Editable", type: "text", width: 150, editing: false,visible: false });
+    gridFields.push({ name: "editable", title: "Editable", type: "text", editing: false,visible: false });
+    gridFields.push({ name: "skipped", title: "Editable", type: "text", editing: false,visible: false });
     gridFields.push({
-        name: "command", type: "control", width: 125, modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
+        name: "command", type: "control", modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
         itemTemplate: function (value, item) {
             // don't show button/control when row is solved (disabled for editing) already
             if(item != undefined && item.editable === "false") {
@@ -79,19 +86,19 @@ function renderPersonsData() {
             item.skipped = "retry"
             var $result = this._createGridButton("jsgrid-update-button", "Click to save this row", function(grid) {
                 // ToDo: skip setting itemvalue, update value instead via updateItem call
-                $("#GridPersons").jsGrid("updateItem");
+                $("#GridExercise").jsGrid("updateItem");
             });
             return $result.add(this._createGridButton("jsgrid-cancel-button", "Click to cancel this row", function(grid) {
-                $("#GridPersons").jsGrid("cancelEdit");
+                $("#GridExercise").jsGrid("cancelEdit");
             }))
         },
-
+        align: "center"
     });
     gridFields.push({
-        name: "skipbutton", type: "control", width: 125, modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
+        name: "skipbutton", type: "control",  modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
         itemTemplate: function (value, item) {
             // don't show button/control when row is solved (disabled for editing) already or when its the last row or skipped
-            var items = $("#GridPersons").jsGrid("option", "data");
+            var items = $("#GridExercise").jsGrid("option", "data");
             var arrayLength = items.length;
             if(item.editable === "false" || arrayLength == RowCount || item.skipped === "skipped") {
                 return ""
@@ -101,7 +108,7 @@ function renderPersonsData() {
                 .attr({ type: "button", title: "Skip" })
                 .html("<i class=\"fas fa-forward\"></i>Skip")
                 .on("click", function () {
-                    $("#GridPersons").jsGrid("updateItem", item, { GridfieldName1: item[GridfieldName1], GridfieldName2: item[GridfieldName2], editable: item.editable, skipped: "skipped" }).done(function () {
+                    $("#GridExercise").jsGrid("updateItem", item, { GridfieldName1: item[GridfieldName1], GridfieldName2: item[GridfieldName2], editable: item.editable, skipped: "skipped" }).done(function () {
                         $.ajax({
                             type: "GET",
                             url:vDir + "/data/getResults/" + Exercise + "/" + arrayLength,
@@ -109,7 +116,7 @@ function renderPersonsData() {
                             dataType: "json",
                             success: function (data) {
                                 console.log(data)
-                                $("#GridPersons").jsGrid("insertItem", data).done(function() {
+                                $("#GridExercise").jsGrid("insertItem", data).done(function() {
                                     console.log("insertion completed");
                                 });
 
@@ -122,16 +129,16 @@ function renderPersonsData() {
                    })
                 });
         },
+        // remove botton/control when editing/inserting
         editTemplate: function (value, item) { return "" },
-        insertTemplate: function () {
-            return ""
-        }
-
+        insertTemplate: function () { return "" },
+        align: "center"
     });
 
-    $("#GridPersons").jsGrid({
+    $("#GridExercise").jsGrid({
         height: "auto",
-        width:  gridWidth,
+        width:  "70%",
+        shrinkToFit : true,
         updateOnResize: true,
         editing: true,
         inserting: false,
@@ -139,6 +146,15 @@ function renderPersonsData() {
         align: "center",
         data: appData,
         fields: gridFields,
+        // render solved row green
+        rowClass: function(item, itemIndex) {
+            console.log("renderRow")
+            if(item.editable === "false"){
+                console.log("renderRowHighlight")
+                return 'highlight-green'
+            }
+        },
+
 
         controller: {
             // check if entered values are correct
@@ -181,7 +197,7 @@ function renderPersonsData() {
                 return
             }
             // check if everything is solved or if we need to add more rows
-            var items = $("#GridPersons").jsGrid("option", "data");
+            var items = $("#GridExercise").jsGrid("option", "data");
             var arrayLength = items.length;
 
             if(arrayLength == RowCount) {
@@ -193,7 +209,7 @@ function renderPersonsData() {
                     }
                 }
                 if (solvedEverything) {
-                    $("#GridPersons").jsGrid("option", "editing", false)
+                    $("#GridExercise").jsGrid("option", "editing", false)
                     var data = {message: "YOU SOLVED EVERYTHING! :)"}
                     $.showSnackBar(data);
 
@@ -215,7 +231,7 @@ function renderPersonsData() {
                 success: function (data) {
                     //$.showSnackBar(data);
                     console.log(data)
-                    $("#GridPersons").jsGrid("insertItem", data).done(function () {
+                    $("#GridExercise").jsGrid("insertItem", data).done(function () {
                         console.log("insertion completed");
                     });
 
