@@ -26,39 +26,52 @@ func getData(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getResults(w http.ResponseWriter, r *http.Request) {
+// Todo: refactor to handle results and data transformation just on client (JS), just return raw row data here
+func getItem(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	exercise := vars["exercise"]
 	index := vars["index"]
+	// return result
+	result := vars["result"]
 
-	var result HTTPResponseObject
-	result.Success = false
+	var response HTTPResponseObject
+	response.Success = false
 
 	if exercise == "first" {
 		i, _ := strconv.Atoi(index)
 		if i >= len(appData.FirstExercise) {
 			w.WriteHeader(http.StatusInternalServerError)
-			result.Success = false
-			result.Message = "Index out of range."
-			result.ErrorObject = &IndexOutOfRange{}
-			json.NewEncoder(w).Encode(result)
+			response.Success = false
+			response.Message = "Index out of range."
+			response.ErrorObject = &IndexOutOfRange{}
+			json.NewEncoder(w).Encode(response)
 		} else {
-			var toReturn = FirstExercise{FirstWord: appData.FirstExercise[i].FirstWord, SecondWord: strings.Join(appData.FirstExercise[i].RandomWords, ","), Editable: "true", RandomWords: appData.FirstExercise[i].RandomWords}
-			log.Printf("Second word: %s\n", appData.FirstExercise[i].SecondWord)
+			toReturn := FirstExercise{}
+			if result == "true" {
+				toReturn = FirstExercise{FirstWord: appData.FirstExercise[i].FirstWord, SecondWord: appData.FirstExercise[i].SecondWord, Editable: "false", RandomWords: appData.FirstExercise[i].RandomWords}
+			} else {
+				toReturn = FirstExercise{FirstWord: appData.FirstExercise[i].FirstWord, SecondWord: strings.Join(appData.FirstExercise[i].RandomWords, ","), Editable: "true", RandomWords: appData.FirstExercise[i].RandomWords}
+			}
+			log.Printf("Second word: %s (%s)\n", appData.FirstExercise[i].SecondWord, result)
 			json.NewEncoder(w).Encode(toReturn)
 		}
 	} else if exercise == "second" {
 		i, _ := strconv.Atoi(index)
 		if i >= len(appData.FirstExercise) {
 			w.WriteHeader(http.StatusInternalServerError)
-			result.Success = false
-			result.Message = "Index out of range."
-			result.ErrorObject = &IndexOutOfRange{}
-			json.NewEncoder(w).Encode(result)
+			response.Success = false
+			response.Message = "Index out of range."
+			response.ErrorObject = &IndexOutOfRange{}
+			json.NewEncoder(w).Encode(response)
 		} else {
-			var toReturn = SecondExercise{Location: appData.SecondExercise[i].Location, Phone: "?", Editable: "true"}
-			log.Printf("Second word: %s\n", appData.SecondExercise[i].Phone)
+			toReturn := SecondExercise{}
+			if result == "true" {
+				toReturn = SecondExercise{Location: appData.SecondExercise[i].Location, Phone: appData.SecondExercise[i].Phone, Editable: "false"}
+			} else {
+				toReturn = SecondExercise{Location: appData.SecondExercise[i].Location, Phone: "?", Editable: "true"}
+			}
+			log.Printf("Phone: %s (%s)\n", appData.SecondExercise[i].Phone, result)
 			json.NewEncoder(w).Encode(toReturn)
 		}
 	}
@@ -98,6 +111,7 @@ func saveAppSettings(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Todo: do this completely on client side (JS) with the entire given row data
 func queryExercise(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")

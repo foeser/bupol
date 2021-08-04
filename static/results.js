@@ -22,9 +22,11 @@ $(document).ready(function () {
 });
 
 function getAppData() {
-    // just get first element
-    $.getJSON(vDir + "/data/getResults/" + Exercise + "/0", function (data) {
+    // just get first element and not yet resolved (result = false)
+    $.getJSON(vDir + "/data/getItem/" + Exercise + "/0/false", function (data) {
         //console.log(data)
+        // set index for item/rowm
+        data = $.extend(data, {"Index": 0})
         window.appData = [data];
         renderPersonsData();
     }).fail(function (data) {
@@ -70,7 +72,8 @@ function renderPersonsData() {
         align: "center"
     });
     gridFields.push({ name: "editable", title: "Editable", type: "text", editing: false,visible: false });
-    gridFields.push({ name: "skipped", title: "Editable", type: "text", editing: false,visible: false });
+    gridFields.push({ name: "skipped", title: "Skipped", type: "text", editing: false,visible: false });
+    gridFields.push({ name: "Index", title: "RowNumber", type: "number", editing: false,visible: false });
     gridFields.push({
         name: "command", type: "control", modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
         itemTemplate: function (value, item) {
@@ -108,25 +111,67 @@ function renderPersonsData() {
                 .attr({ type: "button", title: "Skip" })
                 .html("<i class=\"fas fa-forward\"></i>Skip")
                 .on("click", function () {
+                    // mark the current row as skipped (avoid updating/checking if the current one is valid) and insert next one
                     $("#GridExercise").jsGrid("updateItem", item, { GridfieldName1: item[GridfieldName1], GridfieldName2: item[GridfieldName2], editable: item.editable, skipped: "skipped" }).done(function () {
                         $.ajax({
                             type: "GET",
-                            url:vDir + "/data/getResults/" + Exercise + "/" + arrayLength,
+                            // get next row as unresolved (result = false)
+                            url:vDir + "/data/getItem/" + Exercise + "/" + arrayLength + "/false",
                             contentType: "text/plain",
                             dataType: "json",
                             success: function (data) {
-                                console.log(data)
+                                //console.log(data)
+                                // set index for item/rowm
+                                $.extend(data, {"Index": arrayLength})
                                 $("#GridExercise").jsGrid("insertItem", data).done(function() {
                                     console.log("insertion completed");
                                 });
 
                             },
                             error: function (data, err) {
-                                console.log(data)
+                                //console.log(data)
                                 console.error(data.responseJSON.message);
                             }
                         })
                    })
+                });
+        },
+        // remove botton/control when editing/inserting
+        editTemplate: function (value, item) { return "" },
+        insertTemplate: function () { return "" },
+        align: "center"
+    });
+    gridFields.push({
+        name: "showbutton", type: "control",  modeSwitchButton: false, editing: false, inserting: false,editButton: false, deleteButton: false,
+        itemTemplate: function (value, item) {
+            // don't show button/control when row is solved (disabled for editing) already
+            if(item.editable === "false") {
+                return ""
+            }
+            //console.log("Updating index: " + item.Index)
+            return $("<button>").addClass("btn btn-primary btn-sm")
+                .attr({ type: "button", title: "Show" })
+                .html("<i class=\"fas fa-surprise\"></i>Show")
+                .on("click", function () {
+                    $.ajax({
+                        type: "GET",
+                        // get this row but resolved (result = true) and update JS grid
+                        url: vDir + "/data/getItem/" + Exercise + "/" + item.Index + "/true",
+                        contentType: "text/plain",
+                        dataType: "json",
+                        success: function (data) {
+                            //$.showSnackBar(data);
+                            //console.log(data)
+                            $("#GridExercise").jsGrid("updateItem", item, data).done(function () {
+                                console.log("update completed");
+                            });
+
+                        },
+                        error: function (data, err) {
+                            //console.log(data)
+                            console.error(data.responseJSON.message);
+                        }
+                    })
                 });
         },
         // remove botton/control when editing/inserting
@@ -148,9 +193,7 @@ function renderPersonsData() {
         fields: gridFields,
         // render solved row green
         rowClass: function(item, itemIndex) {
-            console.log("renderRow")
             if(item.editable === "false"){
-                console.log("renderRowHighlight")
                 return 'highlight-green'
             }
         },
@@ -168,7 +211,7 @@ function renderPersonsData() {
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (data) {
-                        console.log("Match")
+                        //console.log("Match")
                         data.message = "match"
                         $.showSnackBar(data);
 
@@ -177,7 +220,7 @@ function renderPersonsData() {
                         data.message = "Doesn't match"
                         data.error = "Doesn't match"
                         $.showSnackBar(data);
-                        console.error(data);
+                        //console.error(data);
                     }
                 })
             }
@@ -193,7 +236,7 @@ function renderPersonsData() {
 
         // get next item/row
         onItemUpdated: function(args) {
-            if(args.item.skipped === "skipped" || args.item.skipped === "retry") {
+            if(args.item.skipped === "skipped") {
                 return
             }
             // check if everything is solved or if we need to add more rows
@@ -225,11 +268,14 @@ function renderPersonsData() {
 
             $.ajax({
                 type: "GET",
-                url: vDir + "/data/getResults/" + Exercise + "/" + (parseInt(args.itemIndex) + 1),
+                // get next row as unresolved (result = false)
+                url: vDir + "/data/getItem/" + Exercise + "/" + (parseInt(args.itemIndex) + 1) + "/false",
                 contentType: "text/plain",
                 dataType: "json",
                 success: function (data) {
                     //$.showSnackBar(data);
+                    // set index for item/rowm
+                    $.extend(data, {"Index": parseInt(args.itemIndex) + 1})
                     console.log(data)
                     $("#GridExercise").jsGrid("insertItem", data).done(function () {
                         console.log("insertion completed");

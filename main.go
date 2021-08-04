@@ -92,14 +92,19 @@ func setupWebServer() {
 	router.HandleFunc(appConfig.VDir+"/data/get/{exercise}", getData).Methods("GET")
 	router.HandleFunc(appConfig.VDir+"/data/get/{exercise}/", getData).Methods("GET")
 
-	router.HandleFunc(appConfig.VDir+"/data/getResults/{exercise}/{index}", getResults).Methods("GET")
-	router.HandleFunc(appConfig.VDir+"/data/getResults/{exercise}/{index}/", getResults).Methods("GET")
+	router.HandleFunc(appConfig.VDir+"/data/getItem/{exercise}/{index}/{result}", getItem).Methods("GET")
+	router.HandleFunc(appConfig.VDir+"/data/getItem/{exercise}/{index}/{result}/", getItem).Methods("GET")
 
 	router.HandleFunc(appConfig.VDir+"/query/{exercise}/{first}/{second}", queryExercise).Methods("GET")
 
 	// Setup webserver
 	httpListen := "0.0.0.0:" + strconv.Itoa(appConfig.Port)
 	log.Printf("Starting WebServer on %s", httpListen)
+
+	// Set up logging middleware
+	router.Use(func(h http.Handler) http.Handler {
+		return handlers.CombinedLoggingHandler(os.Stdout, h)
+	})
 
 	srv := &http.Server{
 		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(router),
