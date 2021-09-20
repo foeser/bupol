@@ -18,7 +18,8 @@ func main() {
 	loadConfig()
 	setAppSettings()
 	loadLocationsData()
-	loadRandomWords()
+	loadGermanWords()
+	loadTurkishWords()
 	setupWebServer()
 }
 

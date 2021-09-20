@@ -2,12 +2,10 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -19,7 +17,6 @@ var appSettings AppSettings
 
 func loadDataFirstExercise() {
 	appData.FirstExercise = nil
-	getRandomPersonData()
 	addRandomWords()
 }
 
@@ -36,14 +33,14 @@ func loadDataSecondExercise() {
 	}
 }
 
-func loadRandomWords() {
+func loadGermanWords() {
 	fileBytes, err := ioutil.ReadFile("final")
 	if err != nil {
 		log.Fatalf("Error reading random words file: %s", err)
 	}
 
-	appData.RandomWords = strings.Split(string(fileBytes), ":")
-	if appData.RandomWords == nil {
+	appData.GermanWords = strings.Split(string(fileBytes), ":")
+	if appData.GermanWords == nil {
 		log.Fatal("Error reading random words!")
 	}
 	/*fmt.Printf("Count before removing duplicates: %d\n", len(appData.RandomWords))
@@ -73,6 +70,18 @@ func loadRandomWords() {
 	file.Close()*/
 }
 
+func loadTurkishWords() {
+	fileBytes, err := ioutil.ReadFile("turkishwords")
+	if err != nil {
+		log.Fatalf("Error reading random words file: %s", err)
+	}
+
+	appData.TurkishWords = strings.Split(string(fileBytes), "\n")
+	if appData.TurkishWords == nil {
+		log.Fatal("Error reading random words!")
+	}
+}
+
 func loadLocationsData() {
 	/*fileBytes, err := ioutil.ReadFile("locations")
 	if err != nil {
@@ -94,7 +103,7 @@ func loadLocationsData() {
 	}
 }
 
-func getRandomPersonData() {
+/*func getRandomPersonData() {
 	url := fmt.Sprintf("https://randomname.de/?format=json&count=%d&phone=a", appSettings.RowCount)
 	res, err := http.Get(url)
 	if err != nil {
@@ -108,17 +117,17 @@ func getRandomPersonData() {
 	if err = json.Unmarshal(body, &appData.FirstExercise); err != nil {
 		log.Fatalf("Error reading valid json back from random person data: %s", err)
 	}
-}
+}*/
 
 func addRandomWords() {
 	rand.Seed(time.Now().UnixNano())
-	for _, entry := range appData.FirstExercise {
-		// get five random words for each entry
+	for i := 0; i < appSettings.RowCount; i++ {
+		var RandomTurkishWords []string
 		for count := 0; count < 5; count++ {
-			entry.RandomWords = append(entry.RandomWords, appData.RandomWords[rand.Intn(len(appData.RandomWords))])
+			RandomTurkishWords = append(RandomTurkishWords, appData.TurkishWords[rand.Intn(len(appData.TurkishWords))])
 		}
-		// select one randomly as the second word
-		entry.SecondWord = entry.RandomWords[rand.Intn(len(entry.RandomWords))]
+		var test = FirstExercise{FirstWord: appData.GermanWords[rand.Intn(len(appData.GermanWords))], SecondWord: RandomTurkishWords[rand.Intn(len(RandomTurkishWords))], Editable: "false", RandomWords: RandomTurkishWords}
+		appData.FirstExercise = append(appData.FirstExercise, &test)
 	}
 }
 

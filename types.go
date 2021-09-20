@@ -24,7 +24,7 @@ type AppConfig struct {
 }
 
 type FirstExercise struct {
-	FirstWord   string `json:"username"`
+	FirstWord   string
 	SecondWord  string
 	RandomWords []string
 	Editable    string `json:"editable"`
@@ -40,7 +40,8 @@ type AppData struct {
 	FirstExercise  []*FirstExercise
 	SecondExercise []*SecondExercise
 	Locations      []string
-	RandomWords    []string
+	GermanWords    []string
+	TurkishWords   []string
 }
 
 type PageData struct {
